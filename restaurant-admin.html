@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة تحكم المطعم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=Tajawal:wght@400;500;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --color-bg:#FBF6EC;
+    --color-surface:#FFFFFF;
+    --color-primary:#B8863E;
+    --color-primary-dark:#8F661F;
+    --color-accent:#B8863E;
+    --color-accent-soft:rgba(184,134,62,.14);
+    --color-text:#2B2420;
+    --color-text-muted:rgba(43,36,32,.6);
+    --color-border:rgba(43,36,32,.14);
+    --color-danger:#B5533A;
+    --radius:14px;
+    --shadow:0 14px 34px rgba(43,36,32,.08);
+    --font-display:'Cairo',sans-serif;
+    --font-brand:'Playfair Display',serif;
+    --font-body:'Tajawal',sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--color-bg);color:var(--color-text);
+    font-family:var(--font-body);line-height:1.6;
+  }
+  h1,h2,h3,.brand{font-family:var(--font-display);}
+  button{font-family:inherit;cursor:pointer;border:none;}
+  input,textarea{font-family:inherit;}
+
+  /* ---------- Login ---------- */
+  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .login-box{
+    background:var(--color-surface);border-radius:var(--radius);border:1px solid var(--color-border);
+    box-shadow:var(--shadow);padding:36px 30px;max-width:380px;width:100%;text-align:center;
+  }
+  .login-box h1{font-family:var(--font-brand);font-size:24px;margin:0 0 6px;}
+  .login-box p.sub{color:var(--color-text-muted);font-size:13.5px;margin:0 0 22px;}
+  .field{margin-bottom:14px;text-align:right;}
+  .field label{display:block;font-size:12.5px;font-weight:700;color:var(--color-text-muted);margin-bottom:6px;}
+  .field input,.field textarea{
+    width:100%;padding:11px 13px;border:1px solid var(--color-border);border-radius:10px;
+    font-size:14px;background:rgba(43,36,32,.03);color:var(--color-text);
+  }
+  .field textarea{resize:vertical;min-height:60px;}
+  .btn{
+    width:100%;background:var(--color-primary);color:#1A1305;padding:12px;border-radius:10px;
+    font-weight:800;font-size:14.5px;transition:background .15s ease;
+  }
+  .btn:hover{background:var(--color-primary-dark);}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+  .btn-outline{background:transparent;color:var(--color-text);border:1px solid var(--color-border);}
+  .btn-outline:hover{background:rgba(43,36,32,.05);}
+  .btn-danger{background:var(--color-danger);color:#2A0F07;}
+  .msg{font-size:13px;margin-top:12px;min-height:18px;}
+  .msg.error{color:var(--color-danger);}
+  .msg.success{color:#7CC98F;}
+
+  /* ---------- Dashboard shell ---------- */
+  header.topbar{
+    position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;
+    padding:16px 6%;background:rgba(10,26,44,.92);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--color-border);
+  }
+  .brand{font-family:var(--font-brand);font-size:20px;font-weight:700;color:var(--color-primary);}
+  .logout-btn{
+    background:transparent;color:var(--color-text-muted);border:1px solid var(--color-border);
+    padding:8px 16px;border-radius:999px;font-size:13px;font-weight:700;
+  }
+  .logout-btn:hover{background:rgba(43,36,32,.05);color:var(--color-text);}
+
+  main{max-width:960px;margin:0 auto;padding:34px 6% 80px;}
+  .card-block{
+    background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:24px;margin-bottom:30px;
+  }
+  .card-block h2{margin:0 0 4px;font-size:18px;color:var(--color-primary);}
+  .card-block .hint{color:var(--color-text-muted);font-size:12.5px;margin:0 0 18px;}
+  .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media (max-width:560px){.settings-grid{grid-template-columns:1fr;}}
+  .settings-actions{display:flex;align-items:center;gap:14px;margin-top:14px;}
+  .settings-actions .btn{width:auto;padding:11px 26px;}
+  .criterion-row{display:flex;gap:8px;align-items:center;}
+  .criterion-row input{
+    flex:1;padding:10px 12px;border:1px solid var(--color-border);border-radius:10px;
+    font-size:13.5px;background:rgba(43,36,32,.03);color:var(--color-text);
+  }
+  .criterion-row button{
+    width:34px;height:34px;border-radius:8px;background:rgba(181,83,58,.12);color:var(--color-danger);
+    font-weight:800;flex-shrink:0;
+  }
+
+  .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+  .section-head h2{margin:0;font-size:19px;color:var(--color-primary);}
+  .add-btn-top{background:var(--color-primary);color:#1A1305;padding:10px 18px;border-radius:999px;font-weight:700;font-size:13.5px;}
+  .add-btn-top:hover{background:var(--color-primary-dark);}
+
+  .cat-filter{display:flex;gap:8px;overflow-x:auto;margin-bottom:18px;padding-bottom:4px;}
+  .cat-filter button{
+    flex-shrink:0;padding:8px 16px;border-radius:999px;font-size:12.5px;font-weight:700;
+    background:rgba(43,36,32,.035);border:1px solid var(--color-border);color:var(--color-text-muted);
+  }
+  .cat-filter button.active{background:var(--color-primary);color:#1A1305;border-color:transparent;}
+
+  .admin-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;}
+  .empty-note{grid-column:1/-1;text-align:center;color:var(--color-text-muted);padding:40px 10px;font-size:14px;}
+  .admin-card{
+    background:rgba(43,36,32,.025);border:1px solid var(--color-border);border-radius:var(--radius);
+    overflow:hidden;display:flex;flex-direction:column;
+  }
+  .admin-thumb{height:130px;display:flex;align-items:center;justify-content:center;font-size:34px;overflow:hidden;position:relative;background:linear-gradient(135deg,#EFE3CB,#F6EEDD);}
+  .admin-thumb img{width:100%;height:100%;object-fit:cover;}
+  .cat-pill{position:absolute;top:8px;inset-inline-end:8px;font-size:10px;font-weight:800;padding:4px 9px;border-radius:999px;background:rgba(43,36,32,.65);color:#fff;}
+  .stock-pill{position:absolute;top:8px;inset-inline-start:8px;font-size:10.5px;font-weight:800;padding:4px 10px;border-radius:999px;}
+  .stock-pill.in{background:rgba(124,201,143,.2);color:#7CC98F;}
+  .stock-pill.out{background:rgba(217,139,114,.2);color:var(--color-danger);}
+  .admin-card-body{padding:14px 14px 16px;display:flex;flex-direction:column;gap:6px;flex:1;}
+  .admin-card-body h3{margin:0;font-size:15px;}
+  .admin-card-body .price{font-family:var(--font-display);font-weight:800;color:var(--color-primary);font-size:14.5px;}
+  .admin-card-actions{display:flex;gap:8px;margin-top:auto;padding-top:10px;}
+  .admin-card-actions button{flex:1;padding:8px;border-radius:8px;font-size:12.5px;font-weight:700;background:rgba(43,36,32,.06);color:var(--color-text);}
+  .admin-card-actions button.del{background:rgba(217,139,114,.18);color:var(--color-danger);}
+
+  /* ---------- Modal ---------- */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .2s ease;
+    display:flex;align-items:center;justify-content:center;padding:20px;z-index:80;
+  }
+  .modal-overlay.open{opacity:1;pointer-events:auto;}
+  .modal-box{
+    background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius);
+    max-width:480px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow);padding:26px;
+  }
+  .modal-box h2{margin:0 0 18px;font-size:19px;color:var(--color-primary);}
+  .checkbox-row{display:flex;align-items:center;gap:8px;margin:6px 0 18px;}
+  .checkbox-row label{font-size:13.5px;font-weight:700;color:var(--color-text);}
+  #formImagePreview{
+    width:100%;height:120px;border-radius:10px;background:rgba(43,36,32,.025);
+    border:1px dashed var(--color-border);margin-top:8px;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--color-text-muted);font-size:12.5px;
+  }
+  #formImagePreview img{width:100%;height:100%;object-fit:cover;}
+  .form-actions{display:flex;gap:10px;margin-top:8px;}
+  .form-actions .btn{padding:12px;}
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<!-- ================= شاشة تسجيل الدخول ================= -->
+<div class="login-wrap" id="loginScreen">
+  <div class="login-box">
+    <h1>لوحة تحكم المطعم</h1>
+    <p class="sub">سجّل دخولك لإدارة المنيو والطلبات</p>
+    <div class="field">
+      <label for="loginEmail">البريد الإلكتروني</label>
+      <input type="email" id="loginEmail" placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label for="loginPassword">كلمة السر</label>
+      <input type="password" id="loginPassword" placeholder="••••••••">
+    </div>
+    <button class="btn" id="loginBtn">تسجيل الدخول</button>
+    <p class="msg error" id="loginMsg"></p>
+  </div>
+</div>
+
+<!-- ================= لوحة التحكم ================= -->
+<div id="dashboard" class="hidden">
+  <header class="topbar">
+    <div class="brand">لوحة تحكم المطعم</div>
+    <button class="logout-btn" id="logoutBtn">تسجيل الخروج</button>
+  </header>
+
+  <main>
+    <section class="card-block">
+      <h2>إعدادات المطعم</h2>
+      <p class="hint">هذي البيانات تنعرض تلقائياً بالواجهة الرئيسية للزبون</p>
+      <div class="settings-grid">
+        <div class="field">
+          <label for="settingsName">اسم المطعم</label>
+          <input type="text" id="settingsName" placeholder="اسم المطعم">
+        </div>
+        <div class="field">
+          <label for="settingsTagline">الوصف القصير (يظهر تحت الاسم)</label>
+          <input type="text" id="settingsTagline" placeholder="وصف جذاب قصير">
+        </div>
+        <div class="field">
+          <label for="settingsWhatsapp">رقم واتساب المطعم (بصيغة دولية بدون + مثل 9647XXXXXXXXX)</label>
+          <input type="text" id="settingsWhatsapp" placeholder="9647XXXXXXXXX">
+        </div>
+        <div class="field">
+          <label for="settingsDelivery">رسوم التوصيل (د.ع) — اتركه 0 إذا ماكو توصيل</label>
+          <input type="number" id="settingsDelivery" placeholder="3000">
+        </div>
+        <div class="field">
+          <label for="settingsLocation">رابط الموقع (Google Maps)</label>
+          <input type="text" id="settingsLocation" placeholder="https://maps.google.com/...">
+        </div>
+        <div class="field">
+          <label for="settingsFacebook">رابط صفحة فيسبوك</label>
+          <input type="text" id="settingsFacebook" placeholder="https://facebook.com/...">
+        </div>
+        <div class="field">
+          <label for="settingsInstagram">رابط صفحة انستقرام</label>
+          <input type="text" id="settingsInstagram" placeholder="https://instagram.com/...">
+        </div>
+      </div>
+
+      <div style="margin-top:22px;padding-top:20px;border-top:1px solid var(--color-border);">
+        <label style="display:block;font-size:13px;font-weight:700;margin-bottom:6px;">معايير نموذج التقييم</label>
+        <p class="hint" style="margin-bottom:12px;">أضف المعايير اللي تريد الزبون يقيّمها كل وحدة لحالها (مثلاً: جودة الطعام، الخدمة، النظافة). إذا تركتها فاضية، يطلع تقييم عام واحد بس.</p>
+        <div id="criteriaList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
+        <button class="btn btn-outline" id="addCriterionBtn" type="button" style="width:auto;padding:9px 18px;font-size:13px;">+ إضافة معيار</button>
+      </div>
+
+      <div class="settings-actions">
+        <button class="btn" id="saveSettingsBtn" style="width:auto;padding:11px 26px;">حفظ الإعدادات</button>
+        <span class="msg success" id="settingsMsg"></span>
+      </div>
+    </section>
+
+    <section class="card-block">
+      <h2>أقسام المنيو</h2>
+      <p class="hint">حدد الأقسام الثابتة لمطعمك (مثل: المقبلات، الأطباق الرئيسية، المشروبات). كل صنف بعدين تربطه بأحد هذي الأقسام من قائمة منسدلة، بدل ما تكتبه يدوياً كل مرة.</p>
+      <div id="menuCategoriesList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <button class="btn btn-outline" id="addCategoryBtn" type="button" style="width:auto;padding:9px 18px;font-size:13px;">+ إضافة قسم</button>
+        <button class="btn" id="saveCategoriesBtn" style="width:auto;padding:9px 22px;font-size:13px;">حفظ الأقسام</button>
+        <span class="msg success" id="categoriesMsg"></span>
+      </div>
+    </section>
+
+    <section class="card-block">
+      <div class="section-head">
+        <h2>أصناف المنيو</h2>
+        <button class="add-btn-top" id="addItemBtn">+ إضافة صنف جديد</button>
+      </div>
+      <div class="cat-filter" id="catFilter"></div>
+      <div class="admin-grid" id="itemsList">
+        <div class="empty-note">جاري التحميل...</div>
+      </div>
+    </section>
+
+    <section class="card-block">
+      <div class="section-head">
+        <h2>طلبات الزبائن</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="add-btn-top" id="exportOrdersBtn">⬇️ تحميل كملف Excel</button>
+          <button class="add-btn-top" id="clearOrdersBtn" style="background:rgba(181,83,58,.15);color:var(--color-danger);">🗑️ حذف كل الطلبات</button>
+        </div>
+      </div>
+      <p class="hint">كل طلب يوصل عبر واتساب ينحفظ هنا تلقائياً كسجل دائم. صدّرهم كملف أول قبل ما تحذفهم إذا تريد الاحتفاظ فيهم.</p>
+      <div style="overflow-x:auto;">
+        <table id="ordersTable" style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead>
+            <tr style="text-align:right;border-bottom:2px solid var(--color-border);">
+              <th style="padding:10px 8px;">التاريخ</th>
+              <th style="padding:10px 8px;">الاسم</th>
+              <th style="padding:10px 8px;">الهاتف</th>
+              <th style="padding:10px 8px;">العنوان</th>
+              <th style="padding:10px 8px;">الأصناف</th>
+              <th style="padding:10px 8px;">الدفع</th>
+              <th style="padding:10px 8px;">المجموع</th>
+            </tr>
+          </thead>
+          <tbody id="ordersTableBody">
+            <tr><td colspan="7" style="padding:20px;text-align:center;color:var(--color-text-muted);">جاري التحميل...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card-block">
+      <div class="section-head">
+        <h2>تقييمات الزبائن</h2>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span id="avgRatingDisplay" style="font-weight:800;color:var(--color-primary);font-size:15px;"></span>
+          <button class="add-btn-top" id="exportReviewsBtn">⬇️ تحميل كملف Excel</button>
+          <button class="add-btn-top" id="clearReviewsBtn" style="background:rgba(181,83,58,.15);color:var(--color-danger);">🗑️ حذف كل التقييمات</button>
+        </div>
+      </div>
+      <p class="hint">التقييمات اللي يرسلها الزبائن من نموذج "قيّم تجربتك معنا" بالموقع. صدّرهم أول قبل ما تحذفهم إذا تريد الاحتفاظ فيهم.</p>
+      <div style="overflow-x:auto;">
+        <table id="reviewsTable" style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead>
+            <tr style="text-align:right;border-bottom:2px solid var(--color-border);">
+              <th style="padding:10px 8px;">التاريخ</th>
+              <th style="padding:10px 8px;">التقييم</th>
+              <th style="padding:10px 8px;">الاسم</th>
+              <th style="padding:10px 8px;">الملاحظات</th>
+            </tr>
+          </thead>
+          <tbody id="reviewsTableBody">
+            <tr><td colspan="4" style="padding:20px;text-align:center;color:var(--color-text-muted);">جاري التحميل...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ================= نموذج إضافة / تعديل صنف ================= -->
+<div class="modal-overlay" id="itemFormOverlay">
+  <div class="modal-box">
+    <h2 id="formTitle">إضافة صنف جديد</h2>
+
+    <div class="field">
+      <label for="formName">اسم الصنف</label>
+      <input type="text" id="formName" placeholder="مثال: كباب مشوي">
+    </div>
+    <div class="field">
+      <label for="formCategory">القسم (يحدد وين يطلع بالمنيو)</label>
+      <select id="formCategory" style="width:100%;padding:11px 13px;border:1px solid var(--color-border);border-radius:10px;font-size:14px;background:rgba(43,36,32,.03);color:var(--color-text);"></select>
+    </div>
+    <div class="field">
+      <label for="formPrice">السعر الحالي (د.ع)</label>
+      <input type="number" id="formPrice" placeholder="15000">
+      <label for="formOldPrice">السعر قبل التخفيض (اختياري)</label>
+      <input type="number" id="formOldPrice" placeholder="اتركه فارغاً إذا ما فيه تخفيض">
+    </div>
+    <div class="field">
+      <label for="formDesc">الوصف (يظهر عند الضغط على الصنف)</label>
+      <textarea id="formDesc" placeholder="المكونات، طريقة التقديم..."></textarea>
+    </div>
+    <div class="field">
+      <label for="formImageFile">صورة الصنف — ارفعها مباشرة من جهازك</label>
+      <input type="file" id="formImageFile" accept="image/*">
+      <p style="font-size:11.5px;color:var(--color-text-muted);margin:6px 0 0;">تُحفظ الصورة مباشرة بدون أي موقع خارجي. يفضّل صور أقل من 3 ميجابايت.</p>
+      <div id="formImagePreview">لا توجد صورة</div>
+      <p id="formImageStatus" style="font-size:11.5px;color:var(--color-text-muted);margin:6px 0 0;"></p>
+      <label for="formImageUrl" style="margin-top:14px;">أو الصق رابط صورة جاهز (اختياري)</label>
+      <input type="text" id="formImageUrl" placeholder="https://i.imgur.com/xxxxx.jpg">
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="formInStock" checked>
+      <label for="formInStock">متوفر بالمنيو</label>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-outline" id="formCancelBtn" style="flex:1;">إلغاء</button>
+      <button class="btn" id="formSaveBtn" style="flex:1;">حفظ الصنف</button>
+    </div>
+    <p class="msg" id="formMsg"></p>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+
+<script>
+/* =========================================================
+   ⚙️  إعدادات Firebase — الصق بيانات مشروعك هنا
+   (نفس البيانات بالضبط اللي بتحطها بملف restaurant-menu.html)
+   ========================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyAiPbwsSUZPDqWT3QuMjpsUyerZFEUpCuY",
+  authDomain: "shawai.firebaseapp.com",
+  projectId: "shawai",
+  storageBucket: "shawai.firebasestorage.app",
+  messagingSenderId: "55219558697",
+  appId: "1:55219558697:web:da4426107862c257863f38"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+/* =========================================================
+   لا حاجة لتعديل ما تحت هذا السطر
+   ========================================================= */
+
+const loginScreen = document.getElementById('loginScreen');
+const dashboard = document.getElementById('dashboard');
+
+auth.onAuthStateChanged(user=>{
+  if (user){
+    loginScreen.classList.add('hidden');
+    dashboard.classList.remove('hidden');
+    loadSettings();
+    loadItems();
+    loadOrders();
+    loadReviews();
+  } else {
+    loginScreen.classList.remove('hidden');
+    dashboard.classList.add('hidden');
+  }
+});
+
+function authErrorMessage(err){
+  const code = err && err.code;
+  if (code === 'auth/invalid-email') return 'البريد الإلكتروني غير صالح.';
+  if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') return 'البريد الإلكتروني أو كلمة السر غير صحيحة.';
+  if (code === 'auth/too-many-requests') return 'محاولات كثيرة، حاول بعد شوية.';
+  return 'حدث خطأ أثناء تسجيل الدخول. تأكد من إعداد Firebase بشكل صحيح.';
+}
+
+document.getElementById('loginBtn').addEventListener('click', ()=>{
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const msgEl = document.getElementById('loginMsg');
+  msgEl.textContent = '';
+  if (!email || !password){ msgEl.textContent = 'الرجاء إدخال البريد الإلكتروني وكلمة السر.'; return; }
+  auth.signInWithEmailAndPassword(email, password).catch(err=>{ msgEl.textContent = authErrorMessage(err); });
+});
+
+document.getElementById('logoutBtn').addEventListener('click', ()=> auth.signOut());
+
+/* ---------- إعدادات المطعم ---------- */
+let MENU_CATEGORIES = [];
+
+function loadSettings(){
+  db.collection('settings').doc('store').get().then(doc=>{
+    if (doc.exists){
+      const s = doc.data();
+      document.getElementById('settingsName').value = s.restaurantName || '';
+      document.getElementById('settingsTagline').value = s.tagline || '';
+      document.getElementById('settingsWhatsapp').value = s.whatsappNumber || '';
+      document.getElementById('settingsDelivery').value = s.deliveryFee != null ? s.deliveryFee : '';
+      document.getElementById('settingsLocation').value = s.locationUrl || '';
+      document.getElementById('settingsFacebook').value = s.facebookUrl || '';
+      document.getElementById('settingsInstagram').value = s.instagramUrl || '';
+      renderCriteriaList(s.ratingCriteria || []);
+      MENU_CATEGORIES = Array.isArray(s.menuCategories) ? s.menuCategories : [];
+      renderMenuCategoriesList(MENU_CATEGORIES);
+    } else {
+      renderCriteriaList([]);
+      MENU_CATEGORIES = [];
+      renderMenuCategoriesList([]);
+    }
+  }).catch(err=>console.error(err));
+}
+
+function renderMenuCategoriesList(categories){
+  const wrap = document.getElementById('menuCategoriesList');
+  wrap.innerHTML = '';
+  categories.forEach(label => addCategoryRow(label));
+}
+
+function addCategoryRow(value){
+  const wrap = document.getElementById('menuCategoriesList');
+  const row = document.createElement('div');
+  row.className = 'criterion-row';
+  row.innerHTML = `
+    <input type="text" value="${(value || '').replace(/"/g,'&quot;')}" placeholder="مثال: المقبلات">
+    <button type="button">✕</button>
+  `;
+  row.querySelector('button').addEventListener('click', ()=> row.remove());
+  wrap.appendChild(row);
+}
+
+document.getElementById('addCategoryBtn').addEventListener('click', ()=> addCategoryRow(''));
+
+document.getElementById('saveCategoriesBtn').addEventListener('click', ()=>{
+  const categories = Array.from(document.querySelectorAll('#menuCategoriesList input'))
+    .map(inp => inp.value.trim())
+    .filter(v => v.length > 0);
+  const msgEl = document.getElementById('categoriesMsg');
+  msgEl.className = 'msg';
+  msgEl.textContent = 'جاري الحفظ...';
+  db.collection('settings').doc('store').set({ menuCategories: categories }, { merge: true })
+    .then(()=>{
+      MENU_CATEGORIES = categories;
+      msgEl.className = 'msg success';
+      msgEl.textContent = 'تم الحفظ ✓';
+      setTimeout(()=>{ msgEl.textContent=''; }, 2500);
+    })
+    .catch(err=>{ msgEl.className = 'msg error'; msgEl.textContent = 'تعذّر الحفظ، حاول مرة أخرى.'; console.error(err); });
+});
+
+function renderCriteriaList(criteria){
+  const wrap = document.getElementById('criteriaList');
+  wrap.innerHTML = '';
+  criteria.forEach(label => addCriterionRow(label));
+}
+
+function addCriterionRow(value){
+  const wrap = document.getElementById('criteriaList');
+  const row = document.createElement('div');
+  row.className = 'criterion-row';
+  row.innerHTML = `
+    <input type="text" value="${(value || '').replace(/"/g,'&quot;')}" placeholder="مثال: جودة الطعام">
+    <button type="button">✕</button>
+  `;
+  row.querySelector('button').addEventListener('click', ()=> row.remove());
+  wrap.appendChild(row);
+}
+
+document.getElementById('addCriterionBtn').addEventListener('click', ()=> addCriterionRow(''));
+
+document.getElementById('saveSettingsBtn').addEventListener('click', ()=>{
+  const ratingCriteria = Array.from(document.querySelectorAll('#criteriaList input'))
+    .map(inp => inp.value.trim())
+    .filter(v => v.length > 0);
+
+  const data = {
+    restaurantName: document.getElementById('settingsName').value.trim(),
+    tagline: document.getElementById('settingsTagline').value.trim(),
+    whatsappNumber: document.getElementById('settingsWhatsapp').value.trim(),
+    deliveryFee: Number(document.getElementById('settingsDelivery').value) || 0,
+    locationUrl: document.getElementById('settingsLocation').value.trim(),
+    facebookUrl: document.getElementById('settingsFacebook').value.trim(),
+    instagramUrl: document.getElementById('settingsInstagram').value.trim(),
+    ratingCriteria
+  };
+  const msgEl = document.getElementById('settingsMsg');
+  msgEl.className = 'msg';
+  msgEl.textContent = 'جاري الحفظ...';
+  db.collection('settings').doc('store').set(data, { merge: true })
+    .then(()=>{ msgEl.className = 'msg success'; msgEl.textContent = 'تم الحفظ ✓'; setTimeout(()=>{ msgEl.textContent=''; }, 2500); })
+    .catch(err=>{ msgEl.className = 'msg error'; msgEl.textContent = 'تعذّر الحفظ، حاول مرة أخرى.'; console.error(err); });
+});
+
+/* ---------- أصناف المنيو ---------- */
+let ITEMS_CACHE = [];
+let currentCatFilter = 'الكل';
+
+function mediaHTML(item){
+  return item.image ? `<img src="${item.image}" alt="${item.name}">` : '🍽️';
+}
+
+function loadItems(){
+  const list = document.getElementById('itemsList');
+  list.innerHTML = `<div class="empty-note">جاري التحميل...</div>`;
+  db.collection('items').orderBy('createdAt','desc').get().then(snap=>{
+    ITEMS_CACHE = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderCatFilter();
+    renderItemsList();
+  }).catch(err=>{
+    list.innerHTML = `<div class="empty-note">تعذّر تحميل الأصناف.</div>`;
+    console.error(err);
+  });
+}
+
+function renderCatFilter(){
+  const wrap = document.getElementById('catFilter');
+  const cats = ['الكل', ...new Set(ITEMS_CACHE.map(it => it.category || 'أصناف أخرى'))];
+  wrap.innerHTML = cats.map(c => `<button data-cat="${c}" class="${c === currentCatFilter ? 'active' : ''}">${c}</button>`).join('');
+  wrap.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      currentCatFilter = btn.dataset.cat;
+      renderCatFilter();
+      renderItemsList();
+    });
+  });
+}
+
+function renderItemsList(){
+  const list = document.getElementById('itemsList');
+  const items = currentCatFilter === 'الكل' ? ITEMS_CACHE : ITEMS_CACHE.filter(it => (it.category || 'أصناف أخرى') === currentCatFilter);
+  if (items.length === 0){
+    list.innerHTML = `<div class="empty-note">ماكو أصناف بهذا القسم بعد.</div>`;
+    return;
+  }
+  list.innerHTML = items.map(item => `
+    <div class="admin-card">
+      <div class="admin-thumb">
+        <span class="stock-pill ${item.inStock === false ? 'out' : 'in'}">${item.inStock === false ? 'نفذ' : 'متوفر'}</span>
+        <span class="cat-pill">${item.category || 'أصناف أخرى'}</span>
+        ${mediaHTML(item)}
+      </div>
+      <div class="admin-card-body">
+        <h3>${item.name}</h3>
+        <span class="price">${item.oldPrice && Number(item.oldPrice) > Number(item.price) ? `<span style="text-decoration:line-through;color:var(--color-text-muted);font-weight:600;font-size:12.5px;margin-inline-end:5px;">${Number(item.oldPrice).toLocaleString('en-US')}</span>` : ''}${Number(item.price||0).toLocaleString('en-US')} د.ع</span>
+        <div class="admin-card-actions">
+          <button class="edit" data-id="${item.id}">تعديل</button>
+          <button class="del" data-id="${item.id}">حذف</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('.edit').forEach(btn=> btn.addEventListener('click', ()=> openItemForm(btn.dataset.id)));
+  list.querySelectorAll('.del').forEach(btn=> btn.addEventListener('click', ()=> deleteItem(btn.dataset.id)));
+}
+
+function deleteItem(id){
+  const item = ITEMS_CACHE.find(x=>x.id===id);
+  if (!item) return;
+  if (!confirm(`متأكد تريد حذف "${item.name}"؟`)) return;
+  db.collection('items').doc(id).delete().then(loadItems).catch(err=>{ alert('تعذّر حذف الصنف.'); console.error(err); });
+}
+
+/* ---------- نموذج إضافة / تعديل صنف ---------- */
+let editingId = null;
+let uploadedImageDataUrl = null;
+
+function updateImagePreview(url){
+  const el = document.getElementById('formImagePreview');
+  el.innerHTML = url ? `<img src="${url}" alt="">` : 'لا توجد صورة';
+}
+
+function openItemForm(id){
+  const overlay = document.getElementById('itemFormOverlay');
+  const msgEl = document.getElementById('formMsg');
+  msgEl.textContent = ''; msgEl.className = 'msg';
+  uploadedImageDataUrl = null;
+  document.getElementById('formImageFile').value = '';
+  document.getElementById('formImageStatus').textContent = '';
+
+  const categorySelect = document.getElementById('formCategory');
+  if (MENU_CATEGORIES.length === 0){
+    categorySelect.innerHTML = `<option value="">أضف أقسام أولاً من قسم "أقسام المنيو" فوق</option>`;
+  } else {
+    categorySelect.innerHTML = MENU_CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
+  }
+
+  if (id){
+    const item = ITEMS_CACHE.find(x=>x.id===id);
+    if (!item) return;
+    editingId = id;
+    document.getElementById('formTitle').textContent = 'تعديل الصنف';
+    document.getElementById('formName').value = item.name || '';
+    if (item.category && !MENU_CATEGORIES.includes(item.category)){
+      categorySelect.insertAdjacentHTML('afterbegin', `<option value="${item.category}">${item.category} (قديم)</option>`);
+    }
+    categorySelect.value = item.category || '';
+    document.getElementById('formPrice').value = item.price || '';
+    document.getElementById('formOldPrice').value = item.oldPrice || '';
+    document.getElementById('formDesc').value = item.desc || '';
+    if (item.image && item.image.startsWith('data:')){
+      document.getElementById('formImageUrl').value = '';
+      uploadedImageDataUrl = item.image;
+      document.getElementById('formImageStatus').textContent = 'صورة محفوظة مسبقاً — اختر ملف جديد لتغييرها.';
+    } else {
+      document.getElementById('formImageUrl').value = item.image || '';
+    }
+    document.getElementById('formInStock').checked = item.inStock !== false;
+    updateImagePreview(item.image || '');
+  } else {
+    editingId = null;
+    document.getElementById('formTitle').textContent = 'إضافة صنف جديد';
+    document.getElementById('formName').value = '';
+    if (MENU_CATEGORIES.includes(currentCatFilter)) categorySelect.value = currentCatFilter;
+    document.getElementById('formPrice').value = '';
+    document.getElementById('formOldPrice').value = '';
+    document.getElementById('formDesc').value = '';
+    document.getElementById('formImageUrl').value = '';
+    document.getElementById('formInStock').checked = true;
+    updateImagePreview('');
+  }
+  overlay.classList.add('open');
+}
+
+function closeItemForm(){ document.getElementById('itemFormOverlay').classList.remove('open'); }
+
+document.getElementById('addItemBtn').addEventListener('click', ()=> openItemForm(null));
+document.getElementById('formCancelBtn').addEventListener('click', closeItemForm);
+document.getElementById('itemFormOverlay').addEventListener('click', (e)=>{ if (e.target.id === 'itemFormOverlay') closeItemForm(); });
+
+document.getElementById('formImageUrl').addEventListener('input', (e)=>{
+  uploadedImageDataUrl = null;
+  document.getElementById('formImageStatus').textContent = '';
+  updateImagePreview(e.target.value.trim());
+});
+
+document.getElementById('formImageFile').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  const statusEl = document.getElementById('formImageStatus');
+  if (!file) return;
+  statusEl.textContent = 'جاري تجهيز الصورة...';
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const MAX_DIM = 900;
+      let w = img.width, h = img.height;
+      if (w > h && w > MAX_DIM){ h = Math.round(h * MAX_DIM / w); w = MAX_DIM; }
+      else if (h > MAX_DIM){ w = Math.round(w * MAX_DIM / h); h = MAX_DIM; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      let quality = 0.75;
+      let dataUrl = canvas.toDataURL('image/jpeg', quality);
+      while (dataUrl.length > 700000 && quality > 0.3){ quality -= 0.1; dataUrl = canvas.toDataURL('image/jpeg', quality); }
+      if (dataUrl.length > 800000){
+        statusEl.textContent = 'الصورة كبيرة كثير حتى بعد الضغط، جرب صورة ثانية أصغر.';
+        uploadedImageDataUrl = null;
+        return;
+      }
+      uploadedImageDataUrl = dataUrl;
+      document.getElementById('formImageUrl').value = '';
+      updateImagePreview(dataUrl);
+      statusEl.textContent = `تم تجهيز الصورة (${Math.round(dataUrl.length/1024)} كيلوبايت) ✓`;
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('formSaveBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('formName').value.trim();
+  const category = document.getElementById('formCategory').value.trim();
+  const price = Number(document.getElementById('formPrice').value);
+  const oldPriceRaw = document.getElementById('formOldPrice').value.trim();
+  const oldPrice = oldPriceRaw ? Number(oldPriceRaw) : null;
+  const desc = document.getElementById('formDesc').value.trim();
+  const inStock = document.getElementById('formInStock').checked;
+  const image = uploadedImageDataUrl || document.getElementById('formImageUrl').value.trim();
+  const msgEl = document.getElementById('formMsg');
+  const saveBtn = document.getElementById('formSaveBtn');
+
+  msgEl.className = 'msg';
+  if (!name || !price){ msgEl.className = 'msg error'; msgEl.textContent = 'الرجاء إدخال اسم الصنف والسعر.'; return; }
+  if (!category){ msgEl.className = 'msg error'; msgEl.textContent = 'الرجاء اختيار القسم (أضف أقسام من قسم "أقسام المنيو" فوق إذا كانت القائمة فاضية).'; return; }
+  if (oldPrice !== null && oldPrice <= price){ msgEl.className = 'msg error'; msgEl.textContent = 'السعر قبل التخفيض لازم يكون أكبر من السعر الحالي.'; return; }
+
+  saveBtn.disabled = true;
+  msgEl.textContent = 'جاري الحفظ...';
+
+  try{
+    const data = { name, category, price, oldPrice, desc, inStock, image };
+    if (editingId){
+      await db.collection('items').doc(editingId).update(data);
+    } else {
+      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('items').add(data);
+    }
+    saveBtn.disabled = false;
+    closeItemForm();
+    loadItems();
+  } catch(err){
+    console.error(err);
+    saveBtn.disabled = false;
+    msgEl.className = 'msg error';
+    msgEl.textContent = 'تعذّر حفظ الصنف. تأكد من إعداد Firebase (Firestore) بشكل صحيح.';
+  }
+});
+
+/* ---------- طلبات الزبائن ---------- */
+let ORDERS_CACHE = [];
+
+function loadOrders(){
+  const tbody = document.getElementById('ordersTableBody');
+  db.collection('orders').orderBy('createdAt', 'desc').limit(500).get().then(snap=>{
+    ORDERS_CACHE = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderOrdersTable();
+  }).catch(err=>{
+    console.error(err);
+    tbody.innerHTML = `<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--color-text-muted);">تعذّر تحميل الطلبات.</td></tr>`;
+  });
+}
+
+function formatOrderDate(order){
+  if (order.createdAt && order.createdAt.toDate){
+    const d = order.createdAt.toDate();
+    return d.toLocaleDateString('ar-IQ') + ' ' + d.toLocaleTimeString('ar-IQ', {hour:'2-digit', minute:'2-digit'});
+  }
+  return '—';
+}
+function itemsSummary(order){
+  if (!order.items) return '';
+  return order.items.map(it => `${it.name} ×${it.qty}`).join('، ');
+}
+
+function renderOrdersTable(){
+  const tbody = document.getElementById('ordersTableBody');
+  if (ORDERS_CACHE.length === 0){
+    tbody.innerHTML = `<tr><td colspan="7" style="padding:20px;text-align:center;color:var(--color-text-muted);">ما وصل أي طلب بعد.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = ORDERS_CACHE.map(o => `
+    <tr style="border-bottom:1px solid var(--color-border);">
+      <td style="padding:9px 8px;white-space:nowrap;">${formatOrderDate(o)}</td>
+      <td style="padding:9px 8px;">${o.customerName || '—'}</td>
+      <td style="padding:9px 8px;white-space:nowrap;">${o.customerPhone || '—'}</td>
+      <td style="padding:9px 8px;max-width:180px;">${o.customerAddress || '—'}</td>
+      <td style="padding:9px 8px;max-width:220px;">${itemsSummary(o)}</td>
+      <td style="padding:9px 8px;white-space:nowrap;">${o.paymentMethod || '—'}</td>
+      <td style="padding:9px 8px;white-space:nowrap;font-weight:800;">${Number(o.total||0).toLocaleString('en-US')} د.ع</td>
+    </tr>
+  `).join('');
+}
+
+function csvEscape(val){
+  const s = String(val == null ? '' : val).replace(/"/g, '""');
+  return `"${s}"`;
+}
+
+function exportOrdersCSV(){
+  if (ORDERS_CACHE.length === 0) return false;
+  const headers = ['التاريخ','الاسم','الهاتف','العنوان','الأصناف','طريقة الدفع','قبل الخصم','التوفير','التوصيل','المجموع الكلي'];
+  const rows = ORDERS_CACHE.map(o => [
+    formatOrderDate(o), o.customerName || '', o.customerPhone || '', o.customerAddress || '',
+    itemsSummary(o), o.paymentMethod || '', o.originalSubtotal || 0, o.savings || 0, o.deliveryFee || 0, o.total || 0
+  ]);
+  let csv = '\uFEFF' + headers.map(csvEscape).join(',') + '\n';
+  rows.forEach(r => { csv += r.map(csvEscape).join(',') + '\n'; });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `طلبات-المطعم-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  return true;
+}
+
+document.getElementById('exportOrdersBtn').addEventListener('click', ()=>{
+  if (!exportOrdersCSV()) alert('ما فيه طلبات لتصديرها بعد.');
+});
+
+/* ---------- تقييمات الزبائن ---------- */
+let REVIEWS_CACHE = [];
+
+function loadReviews(){
+  const tbody = document.getElementById('reviewsTableBody');
+  db.collection('reviews').orderBy('createdAt', 'desc').limit(300).get().then(snap=>{
+    REVIEWS_CACHE = snap.docs.map(doc => doc.data());
+    renderReviewsTable(REVIEWS_CACHE);
+  }).catch(err=>{
+    console.error(err);
+    tbody.innerHTML = `<tr><td colspan="4" style="padding:20px;text-align:center;color:var(--color-text-muted);">تعذّر تحميل التقييمات.</td></tr>`;
+  });
+}
+
+function starsHTML(rating){
+  const r = Math.round(Number(rating)) || 0;
+  return '⭐'.repeat(r) + '☆'.repeat(Math.max(0, 5 - r));
+}
+
+function reviewAvg(r){
+  if (r.ratings && typeof r.ratings === 'object'){
+    const vals = Object.values(r.ratings).map(Number).filter(v => !isNaN(v));
+    if (vals.length) return vals.reduce((a,b)=>a+b,0) / vals.length;
+  }
+  return Number(r.rating) || 0;
+}
+
+function reviewBreakdown(r){
+  if (r.ratings && typeof r.ratings === 'object' && Object.keys(r.ratings).length){
+    return Object.entries(r.ratings).map(([k,v]) => `${k}: ${v}⭐`).join('، ');
+  }
+  return '';
+}
+
+function renderReviewsTable(reviews){
+  const tbody = document.getElementById('reviewsTableBody');
+  const avgEl = document.getElementById('avgRatingDisplay');
+  if (reviews.length === 0){
+    tbody.innerHTML = `<tr><td colspan="4" style="padding:20px;text-align:center;color:var(--color-text-muted);">ماكو تقييمات بعد.</td></tr>`;
+    avgEl.textContent = '';
+    return;
+  }
+  const avg = reviews.reduce((sum, r) => sum + reviewAvg(r), 0) / reviews.length;
+  avgEl.textContent = `المعدل: ${avg.toFixed(1)} ⭐ (${reviews.length} تقييم)`;
+
+  tbody.innerHTML = reviews.map(r => {
+    let dateStr = '—';
+    if (r.createdAt && r.createdAt.toDate){
+      const d = r.createdAt.toDate();
+      dateStr = d.toLocaleDateString('ar-IQ') + ' ' + d.toLocaleTimeString('ar-IQ', {hour:'2-digit', minute:'2-digit'});
+    }
+    const breakdown = reviewBreakdown(r);
+    return `
+      <tr style="border-bottom:1px solid var(--color-border);">
+        <td style="padding:9px 8px;white-space:nowrap;">${dateStr}</td>
+        <td style="padding:9px 8px;white-space:nowrap;color:var(--color-primary);">${starsHTML(reviewAvg(r))}</td>
+        <td style="padding:9px 8px;">${r.name || 'زبون'}</td>
+        <td style="padding:9px 8px;max-width:320px;">
+          ${breakdown ? `<div style="font-size:11px;color:var(--color-text-muted);margin-bottom:3px;">${breakdown}</div>` : ''}
+          ${r.comment || (breakdown ? '' : '—')}
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function exportReviewsCSV(){
+  if (REVIEWS_CACHE.length === 0) return false;
+  const headers = ['التاريخ','المعدل','الاسم','التفاصيل','الملاحظات'];
+  const rows = REVIEWS_CACHE.map(r => {
+    let dateStr = '—';
+    if (r.createdAt && r.createdAt.toDate){
+      const d = r.createdAt.toDate();
+      dateStr = d.toLocaleDateString('ar-IQ') + ' ' + d.toLocaleTimeString('ar-IQ', {hour:'2-digit', minute:'2-digit'});
+    }
+    return [dateStr, reviewAvg(r).toFixed(1), r.name || '', reviewBreakdown(r), r.comment || ''];
+  });
+  let csv = '\uFEFF' + headers.map(csvEscape).join(',') + '\n';
+  rows.forEach(r => { csv += r.map(csvEscape).join(',') + '\n'; });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `تقييمات-المطعم-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  return true;
+}
+
+document.getElementById('exportReviewsBtn').addEventListener('click', ()=>{
+  if (!exportReviewsCSV()) alert('ماكو تقييمات لتصديرها بعد.');
+});
+
+/* ---------- حذف جماعي (بعد التصدير عادةً) ---------- */
+async function deleteAllInCollection(collectionName){
+  const snap = await db.collection(collectionName).get();
+  const docs = snap.docs;
+  const chunkSize = 450;
+  for (let i = 0; i < docs.length; i += chunkSize){
+    const batch = db.batch();
+    docs.slice(i, i + chunkSize).forEach(d => batch.delete(d.ref));
+    await batch.commit();
+  }
+  return docs.length;
+}
+
+document.getElementById('clearOrdersBtn').addEventListener('click', async ()=>{
+  if (ORDERS_CACHE.length === 0){ alert('ماكو طلبات لحذفها.'); return; }
+  if (!confirm(`متأكد تريد حذف كل الطلبات (${ORDERS_CACHE.length})؟ راح يتحمّل ملف Excel تلقائياً فيه نسخة منهم قبل الحذف.`)) return;
+
+  const btn = document.getElementById('clearOrdersBtn');
+  btn.disabled = true;
+  btn.textContent = 'جاري تحميل نسخة احتياطية...';
+  exportOrdersCSV();
+
+  try{
+    await new Promise(resolve => setTimeout(resolve, 1200)); // مهلة بسيطة تضمن اكتمال التحميل قبل الحذف
+    btn.textContent = 'جاري الحذف...';
+    await deleteAllInCollection('orders');
+    btn.textContent = '🗑️ حذف كل الطلبات';
+    btn.disabled = false;
+    loadOrders();
+  } catch(err){
+    console.error(err);
+    alert('تعذّر حذف الطلبات، حاول مرة أخرى.');
+    btn.textContent = '🗑️ حذف كل الطلبات';
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('clearReviewsBtn').addEventListener('click', async ()=>{
+  if (REVIEWS_CACHE.length === 0){ alert('ماكو تقييمات لحذفها.'); return; }
+  if (!confirm(`متأكد تريد حذف كل التقييمات (${REVIEWS_CACHE.length})؟ راح يتحمّل ملف Excel تلقائياً فيهم نسخة منهم قبل الحذف.`)) return;
+
+  const btn = document.getElementById('clearReviewsBtn');
+  btn.disabled = true;
+  btn.textContent = 'جاري تحميل نسخة احتياطية...';
+  exportReviewsCSV();
+
+  try{
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    btn.textContent = 'جاري الحذف...';
+    await deleteAllInCollection('reviews');
+    btn.textContent = '🗑️ حذف كل التقييمات';
+    btn.disabled = false;
+    loadReviews();
+  } catch(err){
+    console.error(err);
+    alert('تعذّر حذف التقييمات، حاول مرة أخرى.');
+    btn.textContent = '🗑️ حذف كل التقييمات';
+    btn.disabled = false;
+  }
+});
+</script>
+
+</body>
+</html>
